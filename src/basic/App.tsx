@@ -1,45 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
-import { Coupon, ProductWithUI, Notification } from "../types"; // 모든 타입 import
+import { Coupon, Notification } from "../types"; // 모든 타입 import
 import { ShoppingCartIcon } from "./components/icons";
 import { ToastList } from "./components/ui/ToastList";
 import { AdminPage } from "./components/AdminPage";
 import { ProductPage } from "./components/ProductPage"; // ProductPage import 추가
 import { CartPage } from "./components/CartPage"; // CartPage import 추가
 import { useCart } from "./hooks/useCart";
-// 초기 데이터
-const initialProducts: ProductWithUI[] = [
-  {
-    id: "p1",
-    name: "상품1",
-    price: 10000,
-    stock: 20,
-    discounts: [
-      { quantity: 10, rate: 0.1 },
-      { quantity: 20, rate: 0.2 },
-    ],
-    description: "최고급 품질의 프리미엄 상품입니다.",
-  },
-  {
-    id: "p2",
-    name: "상품2",
-    price: 20000,
-    stock: 20,
-    discounts: [{ quantity: 10, rate: 0.15 }],
-    description: "다양한 기능을 갖춘 실용적인 상품입니다.",
-    isRecommended: true,
-  },
-  {
-    id: "p3",
-    name: "상품3",
-    price: 30000,
-    stock: 20,
-    discounts: [
-      { quantity: 10, rate: 0.2 },
-      { quantity: 30, rate: 0.25 },
-    ],
-    description: "대용량과 고성능을 자랑하는 상품입니다.",
-  },
-];
+import { useProducts } from "./hooks/useProducts";
 
 const initialCoupons: Coupon[] = [
   {
@@ -60,19 +27,6 @@ const App = () => {
   // =====================================
   // 상태 관리 (State Management)
   // =====================================
-
-  // 로컬스토리지에서 상품 목록을 불러와 초기화
-  const [products, setProducts] = useState<ProductWithUI[]>(() => {
-    const saved = localStorage.getItem("products");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialProducts;
-      }
-    }
-    return initialProducts;
-  });
 
   // 로컬스토리지에서 쿠폰 목록을 불러와 초기화
   const [coupons, setCoupons] = useState<Coupon[]>(() => {
@@ -98,21 +52,10 @@ const App = () => {
   const [activeTab, setActiveTab] = useState<"products" | "coupons">(
     "products"
   );
-  const [showProductForm, setShowProductForm] = useState(false);
 
   // 검색 관련 상태
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-
-  // 관리자 모드 - 상품 편집 상태
-  const [editingProduct, setEditingProduct] = useState<string | null>(null);
-  const [productForm, setProductForm] = useState({
-    name: "",
-    price: 0,
-    stock: 0,
-    description: "",
-    discounts: [] as Array<{ quantity: number; rate: number }>,
-  });
 
   // 관리자 모드 - 쿠폰 생성 폼 상태
   const [couponForm, setCouponForm] = useState({
@@ -142,6 +85,22 @@ const App = () => {
     },
     []
   );
+  // =====================================
+  // 상품 관리 (useProducts 훅 사용)
+  // =====================================
+
+  const products = useProducts({
+    addNotification,
+  });
+
+  // =====================================
+  // 장바구니 관리 (useCart 훅 사용)
+  // =====================================
+
+  const cart = useCart({
+    products: products.products, // products.products 사용
+    addNotification,
+  });
 
   // =====================================
   // 유틸리티 함수 (Utility Functions)
@@ -155,7 +114,7 @@ const App = () => {
    */
   const formatPrice = (price: number, productId?: string): string => {
     if (productId) {
-      const product = products.find((p) => p.id === productId);
+      const product = products.products.find((p) => p.id === productId); // products.products 사용
       if (product && cart.getRemainingStock(product) <= 0) {
         return "SOLD OUT";
       }
@@ -167,18 +126,6 @@ const App = () => {
 
     return `₩${price.toLocaleString()}`;
   };
-  // =====================================
-  // 할인 및 가격 계산 함수 (Discount & Price Calculation)
-  // =====================================
-  const cart = useCart({
-    products,
-    addNotification,
-  });
-
-  // 로컬스토리지에 상품 목록 저장
-  useEffect(() => {
-    localStorage.setItem("products", JSON.stringify(products));
-  }, [products]);
 
   // 로컬스토리지에 쿠폰 목록 저장
   useEffect(() => {
@@ -192,51 +139,6 @@ const App = () => {
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
-
-  /**
-   * 새 상품 추가
-   * @param newProduct - 추가할 상품 정보 (ID 제외)
-   */
-  const addProduct = useCallback(
-    (newProduct: Omit<ProductWithUI, "id">) => {
-      const product: ProductWithUI = {
-        ...newProduct,
-        id: `p${Date.now()}`,
-      };
-      setProducts((prev) => [...prev, product]);
-      addNotification("상품이 추가되었습니다.", "success");
-    },
-    [addNotification]
-  );
-
-  /**
-   * 기존 상품 정보 업데이트
-   * @param productId - 업데이트할 상품 ID
-   * @param updates - 업데이트할 정보
-   */
-  const updateProduct = useCallback(
-    (productId: string, updates: Partial<ProductWithUI>) => {
-      setProducts((prev) =>
-        prev.map((product) =>
-          product.id === productId ? { ...product, ...updates } : product
-        )
-      );
-      addNotification("상품이 수정되었습니다.", "success");
-    },
-    [addNotification]
-  );
-
-  /**
-   * 상품 삭제
-   * @param productId - 삭제할 상품 ID
-   */
-  const deleteProduct = useCallback(
-    (productId: string) => {
-      setProducts((prev) => prev.filter((p) => p.id !== productId));
-      addNotification("상품이 삭제되었습니다.", "success");
-    },
-    [addNotification]
-  );
 
   // =====================================
   // 관리자 모드 - 쿠폰 관리 함수 (Admin - Coupon Management)
@@ -280,31 +182,6 @@ const App = () => {
   // =====================================
 
   /**
-   * 상품 폼 제출 처리
-   */
-  const handleProductSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingProduct && editingProduct !== "new") {
-      updateProduct(editingProduct, productForm);
-      setEditingProduct(null);
-    } else {
-      addProduct({
-        ...productForm,
-        discounts: productForm.discounts,
-      });
-    }
-    setProductForm({
-      name: "",
-      price: 0,
-      stock: 0,
-      description: "",
-      discounts: [],
-    });
-    setEditingProduct(null);
-    setShowProductForm(false);
-  };
-
-  /**
    * 쿠폰 폼 제출 처리
    */
   const handleCouponSubmit = (e: React.FormEvent) => {
@@ -319,29 +196,14 @@ const App = () => {
     setShowCouponForm(false);
   };
 
-  /**
-   * 상품 편집 모드 시작
-   * @param product - 편집할 상품
-   */
-  const startEditProduct = (product: ProductWithUI) => {
-    setEditingProduct(product.id);
-    setProductForm({
-      name: product.name,
-      price: product.price,
-      stock: product.stock,
-      description: product.description || "",
-      discounts: product.discounts || [],
-    });
-    setShowProductForm(true);
-  };
-
   // =====================================
   // 계산된 값들 (Computed Values)
   // =====================================
 
   // 검색어로 필터링된 상품 목록
   const filteredProducts = debouncedSearchTerm
-    ? products.filter(
+    ? products.products.filter(
+        // products.products 사용
         (product) =>
           product.name
             .toLowerCase()
@@ -351,50 +213,7 @@ const App = () => {
               .toLowerCase()
               .includes(debouncedSearchTerm.toLowerCase()))
       )
-    : products;
-
-  // AdminPage용 핸들러 함수들 추가
-  const handleShowProductForm = useCallback(() => {
-    setEditingProduct("new");
-    setProductForm({
-      name: "",
-      price: 0,
-      stock: 0,
-      description: "",
-      discounts: [],
-    });
-    setShowProductForm(true);
-  }, []);
-
-  const handleProductFormChange = useCallback((field: string, value: any) => {
-    setProductForm((prev) => ({ ...prev, [field]: value }));
-  }, []);
-
-  const handleCancelProductForm = useCallback(() => {
-    setEditingProduct(null);
-    setProductForm({
-      name: "",
-      price: 0,
-      stock: 0,
-      description: "",
-      discounts: [],
-    });
-    setShowProductForm(false);
-  }, []);
-
-  const handleAddDiscount = useCallback(() => {
-    setProductForm((prev) => ({
-      ...prev,
-      discounts: [...prev.discounts, { quantity: 10, rate: 0.1 }],
-    }));
-  }, []);
-
-  const handleRemoveDiscount = useCallback((index: number) => {
-    setProductForm((prev) => ({
-      ...prev,
-      discounts: prev.discounts.filter((_, i) => i !== index),
-    }));
-  }, []);
+    : products.products; // products.products 사용
 
   const handleShowCouponForm = useCallback(() => {
     setShowCouponForm(!showCouponForm);
@@ -474,22 +293,22 @@ const App = () => {
           // AdminPage 컴포넌트 사용
           <AdminPage
             activeTab={activeTab}
-            products={products}
+            products={products.products}
             coupons={coupons}
-            showProductForm={showProductForm}
+            showProductForm={products.showProductForm} // ✅ boolean 상태
             showCouponForm={showCouponForm}
-            editingProduct={editingProduct}
-            productForm={productForm}
+            editingProduct={products.editingProduct}
+            productForm={products.productForm}
             couponForm={couponForm}
             onTabChange={setActiveTab}
-            onShowProductForm={handleShowProductForm}
-            onProductSubmit={handleProductSubmit}
-            onProductFormChange={handleProductFormChange}
-            onCancelProductForm={handleCancelProductForm}
-            onStartEditProduct={startEditProduct}
-            onDeleteProduct={deleteProduct}
-            onAddDiscount={handleAddDiscount}
-            onRemoveDiscount={handleRemoveDiscount}
+            onShowProductForm={products.showProductFormHandler} // ✅ 함수 사용
+            onProductSubmit={products.submitProductForm}
+            onProductFormChange={products.updateProductForm}
+            onCancelProductForm={products.cancelProductForm}
+            onStartEditProduct={products.startEditProduct}
+            onDeleteProduct={products.deleteProduct}
+            onAddDiscount={products.addDiscount}
+            onRemoveDiscount={products.removeDiscount}
             onShowCouponForm={handleShowCouponForm}
             onCouponSubmit={handleCouponSubmit}
             onCouponFormChange={handleCouponFormChange}
@@ -502,7 +321,7 @@ const App = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* ProductPage 컴포넌트 사용 */}
             <ProductPage
-              products={products}
+              products={products.products}
               filteredProducts={filteredProducts}
               debouncedSearchTerm={debouncedSearchTerm}
               onAddToCart={cart.addToCart}
