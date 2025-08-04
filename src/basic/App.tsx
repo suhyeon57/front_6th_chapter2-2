@@ -4,6 +4,7 @@ import { CartIcon } from "./components/icons/CartIcon";
 import { PlusIcon, ShoppingCartIcon, TrashIcon } from "./components/icons";
 import { CloseIcon } from "./components/icons/CloseIcon";
 import { ImageIcon } from "./components/icons/ImageIcon";
+import { ToastList } from "./components/ui/ToastList";
 
 interface ProductWithUI extends Product {
   description?: string;
@@ -627,34 +628,12 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {notifications.length > 0 && (
-        <div className="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
-          {notifications.map((notif) => (
-            <div
-              key={notif.id}
-              className={`p-4 rounded-md shadow-md text-white flex justify-between items-center ${
-                notif.type === "error"
-                  ? "bg-red-600"
-                  : notif.type === "warning"
-                  ? "bg-yellow-600"
-                  : "bg-green-600"
-              }`}
-            >
-              <span className="mr-2">{notif.message}</span>
-              <button
-                onClick={() =>
-                  setNotifications((prev) =>
-                    prev.filter((n) => n.id !== notif.id)
-                  )
-                }
-                className="text-white hover:text-gray-200"
-              >
-                <CloseIcon className="w-4 h-4" strokeWidth={2} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      <ToastList
+        toasts={notifications}
+        onClose={(id) =>
+          setNotifications((prev) => prev.filter((n) => n.id !== id))
+        }
+      />
       <header className="bg-white shadow-sm sticky top-0 z-40 border-b">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">
