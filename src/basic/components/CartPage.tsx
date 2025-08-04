@@ -1,4 +1,4 @@
-import React from "react";
+//import React from "react";
 import { CartItem, Coupon } from "../../types";
 import { CartIcon, CloseIcon } from "./icons";
 

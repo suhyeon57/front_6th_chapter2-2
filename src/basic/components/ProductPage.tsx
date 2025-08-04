@@ -1,4 +1,4 @@
-import React from "react";
+//import React from "react";
 import { ProductWithUI } from "../../types";
 import { ImageIcon } from "./icons";
 
