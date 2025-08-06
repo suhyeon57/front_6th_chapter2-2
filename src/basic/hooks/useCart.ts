@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { CartItem, ProductWithUI, Coupon } from "../../types";
+import { useLocalStorage } from "../utils/hooks/useLocalStorage";
 
 interface UseCartProps {
   products: ProductWithUI[];
@@ -15,17 +16,19 @@ export function useCart({ products, addNotification }: UseCartProps) {
   // =====================================
 
   // 로컬스토리지에서 장바구니 목록을 불러와 초기화
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem("cart");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
+  //   const [cart, setCart] = useState<CartItem[]>(() => {
+  //     const saved = localStorage.getItem("cart");
+  //     if (saved) {
+  //       try {
+  //         return JSON.parse(saved);
+  //       } catch {
+  //         return [];
+  //       }
+  //     }
+  //     return [];
+  //   });
+
+  const [cart, setCart] = useLocalStorage<CartItem[]>("cart", []);
 
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [totalItemCount, setTotalItemCount] = useState(0);
@@ -41,13 +44,13 @@ export function useCart({ products, addNotification }: UseCartProps) {
   }, [cart]);
 
   // 로컬스토리지에 장바구니 저장
-  useEffect(() => {
-    if (cart.length > 0) {
-      localStorage.setItem("cart", JSON.stringify(cart));
-    } else {
-      localStorage.removeItem("cart");
-    }
-  }, [cart]);
+  //   useEffect(() => {
+  //     if (cart.length > 0) {
+  //       localStorage.setItem("cart", JSON.stringify(cart));
+  //     } else {
+  //       localStorage.removeItem("cart");
+  //     }
+  //   }, [cart]);
 
   // =====================================
   // 유틸리티 함수

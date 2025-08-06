@@ -2,21 +2,50 @@ import React from "react";
 import { ProductWithUI, Coupon } from "../../types";
 import { TrashIcon, PlusIcon, CloseIcon } from "./icons";
 
+import {
+  handlePriceInput,
+  handleStockInput,
+  validatePrice,
+  validateStock,
+  validateProductForm,
+  getStockStatusClass,
+} from "../models/product";
+
+import {
+  handleCouponCodeInput,
+  handleDiscountValueInput,
+  validateDiscountValue,
+  validateCouponForm,
+  formatCouponDescription,
+} from "../models/coupon";
+
 interface AdminPageProps {
   // 데이터 props
   activeTab: "products" | "coupons";
-  products: ProductWithUI[];
-  coupons: Coupon[];
-  showProductForm: boolean;
-  showCouponForm: boolean;
-  editingProduct: string | null;
-  productForm: {
-    name: string;
-    price: number;
-    stock: number;
-    description: string;
-    discounts: Array<{ quantity: number; rate: number }>;
+  productsHook: {
+    products: ProductWithUI[];
+    showProductForm: boolean;
+    editingProduct: string | null;
+    productForm: {
+      name: string;
+      price: number;
+      stock: number;
+      description: string;
+      discounts: Array<{ quantity: number; rate: number }>;
+    };
+    onShowProductForm: () => void;
+    onProductSubmit: (e: React.FormEvent) => void;
+    onProductFormChange: (field: string, value: any) => void;
+    onCancelProductForm: () => void;
+    onStartEditProduct: (product: ProductWithUI) => void;
+    onDeleteProduct: (id: string) => void;
+    onAddDiscount: () => void;
+    onRemoveDiscount: (index: number) => void;
   };
+
+  coupons: Coupon[];
+  showCouponForm: boolean;
+
   couponForm: {
     name: string;
     code: string;
@@ -26,14 +55,7 @@ interface AdminPageProps {
 
   // 이벤트 핸들러 props
   onTabChange: (tab: "products" | "coupons") => void;
-  onShowProductForm: () => void;
-  onProductSubmit: (e: React.FormEvent) => void;
-  onProductFormChange: (field: string, value: any) => void;
-  onCancelProductForm: () => void;
-  onStartEditProduct: (product: ProductWithUI) => void;
-  onDeleteProduct: (id: string) => void;
-  onAddDiscount: () => void;
-  onRemoveDiscount: (index: number) => void;
+
   onShowCouponForm: () => void;
   onCouponSubmit: (e: React.FormEvent) => void;
   onCouponFormChange: (field: string, value: any) => void;
@@ -48,22 +70,14 @@ interface AdminPageProps {
 
 export function AdminPage({
   activeTab,
-  products,
+  productsHook,
   coupons,
-  showProductForm,
+
   showCouponForm,
-  editingProduct,
-  productForm,
+
   couponForm,
   onTabChange,
-  onShowProductForm,
-  onProductSubmit,
-  onProductFormChange,
-  onCancelProductForm,
-  onStartEditProduct,
-  onDeleteProduct,
-  onAddDiscount,
-  onRemoveDiscount,
+
   onShowCouponForm,
   onCouponSubmit,
   onCouponFormChange,
@@ -72,6 +86,20 @@ export function AdminPage({
   formatPrice,
   addNotification,
 }: AdminPageProps) {
+  const {
+    products,
+    showProductForm,
+    editingProduct,
+    productForm,
+    onShowProductForm,
+    onProductSubmit,
+    onProductFormChange,
+    onCancelProductForm,
+    onStartEditProduct,
+    onDeleteProduct,
+    onAddDiscount,
+    onRemoveDiscount,
+  } = productsHook;
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8">
@@ -226,21 +254,19 @@ export function AdminPage({
                       type="text"
                       value={productForm.price === 0 ? "" : productForm.price}
                       onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "" || /^\d+$/.test(value)) {
-                          onProductFormChange(
-                            "price",
-                            value === "" ? 0 : parseInt(value)
-                          );
+                        const result = handlePriceInput(e.target.value);
+                        if (result.isValid) {
+                          onProductFormChange("price", result.price);
                         }
                       }}
                       onBlur={(e) => {
-                        const value = e.target.value;
-                        if (value === "") {
-                          onProductFormChange("price", 0);
-                        } else if (parseInt(value) < 0) {
-                          addNotification("가격은 0보다 커야 합니다", "error");
-                          onProductFormChange("price", 0);
+                        const validation = validatePrice(e.target.value);
+                        if (!validation.isValid) {
+                          addNotification(validation.errorMessage!, "error");
+                          onProductFormChange(
+                            "price",
+                            validation.correctedPrice
+                          );
                         }
                       }}
                       className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 px-3 py-2 border"
@@ -256,27 +282,21 @@ export function AdminPage({
                       type="text"
                       value={productForm.stock === 0 ? "" : productForm.stock}
                       onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "" || /^\d+$/.test(value)) {
-                          onProductFormChange(
-                            "stock",
-                            value === "" ? 0 : parseInt(value)
-                          );
+                        const result = handleStockInput(e.target.value);
+                        if (result.isValid) {
+                          onProductFormChange("stock", result.stock);
+                        } else {
+                          addNotification(result.errorMessage!, "error");
                         }
                       }}
                       onBlur={(e) => {
-                        const value = e.target.value;
-                        if (value === "") {
-                          onProductFormChange("stock", 0);
-                        } else if (parseInt(value) < 0) {
-                          addNotification("재고는 0보다 커야 합니다", "error");
-                          onProductFormChange("stock", 0);
-                        } else if (parseInt(value) > 9999) {
-                          addNotification(
-                            "재고는 9999개를 초과할 수 없습니다",
-                            "error"
+                        const validation = validateStock(e.target.value);
+                        if (!validation.isValid) {
+                          addNotification(validation.errorMessage!, "error");
+                          onProductFormChange(
+                            "stock",
+                            validation.correctedStock
                           );
-                          onProductFormChange("stock", 9999);
                         }
                       }}
                       className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 px-3 py-2 border"
@@ -385,9 +405,8 @@ export function AdminPage({
                       </p>
                       <div className="mt-2">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-indigo-700">
-                          {coupon.discountType === "amount"
-                            ? `${coupon.discountValue.toLocaleString()}원 할인`
-                            : `${coupon.discountValue}% 할인`}
+                          {/* ✅ coupon 도메인 함수 사용 */}
+                          {formatCouponDescription(coupon)}
                         </span>
                       </div>
                     </div>
@@ -441,12 +460,12 @@ export function AdminPage({
                       <input
                         type="text"
                         value={couponForm.code}
-                        onChange={(e) =>
-                          onCouponFormChange(
-                            "code",
-                            e.target.value.toUpperCase()
-                          )
-                        }
+                        onChange={(e) => {
+                          const couponFormat = handleCouponCodeInput(
+                            e.target.value
+                          );
+                          onCouponFormChange("code", couponFormat);
+                        }}
                         className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 px-3 py-2 border text-sm font-mono"
                         placeholder="WELCOME2024"
                         required
@@ -481,36 +500,30 @@ export function AdminPage({
                             : couponForm.discountValue
                         }
                         onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === "" || /^\d+$/.test(value)) {
+                          const result = handleDiscountValueInput(
+                            e.target.value,
+                            couponForm.discountType
+                          );
+                          if (result.isValid) {
                             onCouponFormChange(
                               "discountValue",
-                              value === "" ? 0 : parseInt(value)
+                              result.discountValue
                             );
+                          } else {
+                            addNotification(result.errorMessage!, "error");
                           }
                         }}
                         onBlur={(e) => {
-                          const value = parseInt(e.target.value) || 0;
-                          if (couponForm.discountType === "percentage") {
-                            if (value > 100) {
-                              addNotification(
-                                "할인율은 100%를 초과할 수 없습니다",
-                                "error"
-                              );
-                              onCouponFormChange("discountValue", 100);
-                            } else if (value < 0) {
-                              onCouponFormChange("discountValue", 0);
-                            }
-                          } else {
-                            if (value > 100000) {
-                              addNotification(
-                                "할인 금액은 100,000원을 초과할 수 없습니다",
-                                "error"
-                              );
-                              onCouponFormChange("discountValue", 100000);
-                            } else if (value < 0) {
-                              onCouponFormChange("discountValue", 0);
-                            }
+                          const validation = validateDiscountValue(
+                            e.target.value,
+                            couponForm.discountType
+                          );
+                          if (!validation.isValid) {
+                            addNotification(validation.errorMessage!, "error");
+                            onCouponFormChange(
+                              "discountValue",
+                              validation.correctedValue
+                            );
                           }
                         }}
                         className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 px-3 py-2 border text-sm"

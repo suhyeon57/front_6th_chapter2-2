@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { ProductWithUI } from "../../types";
+import { useLocalStorage } from "../utils/hooks/useLocalStorage";
 
 interface UseProductsProps {
   addNotification: (
@@ -49,17 +50,7 @@ export function useProducts({ addNotification }: UseProductsProps) {
   // =====================================
 
   // 로컬스토리지에서 상품 목록을 불러와 초기화
-  const [products, setProducts] = useState<ProductWithUI[]>(() => {
-    const saved = localStorage.getItem("products");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialProducts;
-      }
-    }
-    return initialProducts;
-  });
+  const [products, setProducts] = useLocalStorage("products", initialProducts);
 
   // 상품 폼 관련 상태들
   const [showProductForm, setShowProductForm] = useState(false);
@@ -71,15 +62,6 @@ export function useProducts({ addNotification }: UseProductsProps) {
     description: "",
     discounts: [] as Array<{ quantity: number; rate: number }>,
   });
-
-  // =====================================
-  // 사이드 이펙트
-  // =====================================
-
-  // 로컬스토리지에 상품 목록 저장
-  useEffect(() => {
-    localStorage.setItem("products", JSON.stringify(products));
-  }, [products]);
 
   // =====================================
   // 상품 관리 함수
@@ -235,24 +217,19 @@ export function useProducts({ addNotification }: UseProductsProps) {
   // =====================================
 
   return {
-    // 상태
     products,
     showProductForm,
     editingProduct,
     productForm,
 
-    // 상품 관리 함수
-    addProduct,
-    updateProduct,
-    deleteProduct,
-
-    // 폼 관리 함수
-    showProductFormHandler, // ✅ 함수 이름 변경
-    updateProductForm,
-    cancelProductForm,
-    startEditProduct,
-    addDiscount,
-    removeDiscount,
-    submitProductForm,
+    // ✅ AdminPage에서 기대하는 함수명으로 변경
+    onShowProductForm: showProductFormHandler,
+    onProductSubmit: submitProductForm,
+    onProductFormChange: updateProductForm,
+    onCancelProductForm: cancelProductForm,
+    onStartEditProduct: startEditProduct,
+    onDeleteProduct: deleteProduct,
+    onAddDiscount: addDiscount,
+    onRemoveDiscount: removeDiscount,
   };
 }

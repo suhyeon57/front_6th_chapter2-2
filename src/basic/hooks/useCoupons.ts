@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { Coupon } from "../../types";
+import { useLocalStorage } from "../utils/hooks/useLocalStorage";
 
 interface UseCouponsProps {
   addNotification: (
@@ -36,17 +37,7 @@ export function useCoupons({
   // =====================================
 
   // 로컬스토리지에서 쿠폰 목록을 불러와 초기화
-  const [coupons, setCoupons] = useState<Coupon[]>(() => {
-    const saved = localStorage.getItem("coupons");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialCoupons;
-      }
-    }
-    return initialCoupons;
-  });
+  const [coupons, setCoupons] = useLocalStorage("coupons", initialCoupons);
 
   // 쿠폰 폼 관련 상태들
   const [showCouponForm, setShowCouponForm] = useState(false);
@@ -56,15 +47,6 @@ export function useCoupons({
     discountType: "amount" as "amount" | "percentage",
     discountValue: 0,
   });
-
-  // =====================================
-  // 사이드 이펙트
-  // =====================================
-
-  // 로컬스토리지에 쿠폰 목록 저장
-  useEffect(() => {
-    localStorage.setItem("coupons", JSON.stringify(coupons));
-  }, [coupons]);
 
   // =====================================
   // 쿠폰 관리 함수

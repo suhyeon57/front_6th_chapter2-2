@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
-import { Notification } from "../types"; // 모든 타입 import
+import { useState, useCallback } from "react";
+//import { Notification } from "../types"; // 모든 타입 import
 import { ShoppingCartIcon } from "./components/icons";
 import { ToastList } from "./components/ui/ToastList";
 import { AdminPage } from "./components/AdminPage";
@@ -8,96 +8,49 @@ import { CartPage } from "./components/CartPage"; // CartPage import 추가
 import { useCart } from "./hooks/useCart";
 import { useProducts } from "./hooks/useProducts";
 import { useCoupons } from "./hooks/useCoupons";
-
+import { useDebounce } from "./utils/hooks/useDebounce"; // useDebounce import 추가
+import { formatPrice } from "./utils/formatters"; // formatPrice import 추가
+import { useNotification } from "./utils/hooks/useNotifications"; // useNotification import 추가
 const App = () => {
-  // =====================================
-  // 알림 관리 함수 (Notification Management)
-  // =====================================
-  const addNotification = useCallback(
-    (message: string, type: "error" | "success" | "warning" = "success") => {
-      const id = Date.now().toString();
-      setNotifications((prev) => [...prev, { id, message, type }]);
-
-      setTimeout(() => {
-        setNotifications((prev) => prev.filter((n) => n.id !== id));
-      }, 3000);
-    },
-    []
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { notifications, addNotification, removeNotification } =
+    useNotification();
+  const [activeTab, setActiveTab] = useState<"products" | "coupons">(
+    "products"
   );
 
-  // =====================================
-  // 상품 관리 (useProducts 훅 사용)
-  // =====================================
   const products = useProducts({
     addNotification,
   });
 
-  // =====================================
-  // 장바구니 관리 (useCart 훅 사용)
-  // =====================================
   const cart = useCart({
     products: products.products, // products.products 사용
     addNotification,
   });
 
-  // =====================================
-  // 쿠폰 관리 (useCoupons 훅 사용)
-  // =====================================
   const coupons = useCoupons({
     addNotification,
     selectedCoupon: cart.selectedCoupon,
     setSelectedCoupon: cart.setSelectedCoupon,
   });
-
-  // 관리자 모드 여부
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  // 알림 메시지 목록
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-
-  // UI 표시 상태들
-  //const [showCouponForm, setShowCouponForm] = useState(false);
-  const [activeTab, setActiveTab] = useState<"products" | "coupons">(
-    "products"
-  );
-
-  // 검색 관련 상태
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // ✅ useDebounce 사용
 
-  // =====================================
-  // 유틸리티 함수 (Utility Functions)
-  // =====================================
-  const formatPrice = (price: number, productId?: string): string => {
-    if (productId) {
-      const product = products.products.find((p) => p.id === productId);
-      if (product && cart.getRemainingStock(product) <= 0) {
-        return "SOLD OUT";
-      }
-    }
-
-    if (isAdmin) {
-      return `${price.toLocaleString()}원`;
-    }
-
-    return `₩${price.toLocaleString()}`;
-  };
-
-  // 검색어 디바운싱 처리
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-  // =====================================
-  // 계산된 값들 (Computed Values)
-  // =====================================
+  const formatPriceWithStock = useCallback(
+    (price: number, productId?: string): string => {
+      return formatPrice(price, {
+        productId,
+        products: products.products,
+        getRemainingStock: cart.getRemainingStock,
+        isAdmin,
+      });
+    },
+    [products.products, cart.getRemainingStock, isAdmin]
+  );
 
   // 검색어로 필터링된 상품 목록
   const filteredProducts = debouncedSearchTerm
     ? products.products.filter(
-        // products.products 사용
         (product) =>
           product.name
             .toLowerCase()
@@ -107,15 +60,13 @@ const App = () => {
               .toLowerCase()
               .includes(debouncedSearchTerm.toLowerCase()))
       )
-    : products.products; // products.products 사용
+    : products.products;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <ToastList
         toasts={notifications}
-        onClose={(id) =>
-          setNotifications((prev) => prev.filter((n) => n.id !== id))
-        }
+        onClose={(id) => removeNotification(id)}
       />
       <header className="bg-white shadow-sm sticky top-0 z-40 border-b">
         <div className="max-w-7xl mx-auto px-4">
@@ -169,43 +120,30 @@ const App = () => {
           // AdminPage 컴포넌트 사용
           <AdminPage
             activeTab={activeTab}
-            products={products.products}
-            coupons={coupons.coupons} // ✅ coupons.coupons 사용
-            showProductForm={products.showProductForm}
-            showCouponForm={coupons.showCouponForm} // ✅ coupons.showCouponForm 사용
-            editingProduct={products.editingProduct}
-            productForm={products.productForm}
-            couponForm={coupons.couponForm} // ✅ coupons.couponForm 사용
+            productsHook={products}
+            coupons={coupons.coupons}
+            showCouponForm={coupons.showCouponForm}
+            couponForm={coupons.couponForm}
             onTabChange={setActiveTab}
-            onShowProductForm={products.showProductFormHandler}
-            onProductSubmit={products.submitProductForm}
-            onProductFormChange={products.updateProductForm}
-            onCancelProductForm={products.cancelProductForm}
-            onStartEditProduct={products.startEditProduct}
-            onDeleteProduct={products.deleteProduct}
-            onAddDiscount={products.addDiscount}
-            onRemoveDiscount={products.removeDiscount}
-            onShowCouponForm={coupons.toggleCouponForm} // ✅ coupons.toggleCouponForm 사용
-            onCouponSubmit={coupons.submitCouponForm} // ✅ coupons.submitCouponForm 사용
-            onCouponFormChange={coupons.updateCouponForm} // ✅ coupons.updateCouponForm 사용
-            onCancelCouponForm={coupons.cancelCouponForm} // ✅ coupons.cancelCouponForm 사용
-            onDeleteCoupon={coupons.deleteCoupon} // ✅ coupons.deleteCoupon 사용
-            formatPrice={formatPrice}
+            onShowCouponForm={coupons.toggleCouponForm}
+            onCouponSubmit={coupons.submitCouponForm}
+            onCouponFormChange={coupons.updateCouponForm}
+            onCancelCouponForm={coupons.cancelCouponForm}
+            onDeleteCoupon={coupons.deleteCoupon}
+            formatPrice={formatPriceWithStock}
             addNotification={addNotification}
           />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* ProductPage 컴포넌트 사용 */}
             <ProductPage
               products={products.products}
               filteredProducts={filteredProducts}
               debouncedSearchTerm={debouncedSearchTerm}
               onAddToCart={cart.addToCart}
               getRemainingStock={cart.getRemainingStock}
-              formatPrice={formatPrice}
+              formatPrice={formatPriceWithStock}
             />
 
-            {/* CartPage */}
             <CartPage
               cart={cart.cart}
               coupons={coupons.coupons}
