@@ -173,3 +173,92 @@ export function getStockStatusClass(stock: number): string {
     return "bg-red-100 text-red-800";
   }
 }
+export function getProductBadgeInfo(product: ProductWithUI) {
+  return {
+    showRecommended: product.isRecommended,
+    recommendedText: "BEST",
+    recommendedStyle: "bg-red-500 text-white text-xs px-2 py-1 rounded",
+
+    showDiscount: product.discounts.length > 0,
+    discountStyle: "bg-orange-500 text-white text-xs px-2 py-1 rounded",
+  };
+}
+
+/**
+ * 최대 할인율 반환
+ */
+export function getMaxDiscountRate(product: ProductWithUI): number {
+  if (product.discounts.length === 0) return 0;
+  return Math.max(...product.discounts.map((d) => d.rate)) * 100;
+}
+
+/**
+ * 재고 표시 정보 반환
+ */
+export function getStockDisplayInfo(remainingStock: number) {
+  const isOutOfStock = remainingStock <= 0;
+  const isLowStock = remainingStock <= 5 && remainingStock > 0;
+  const isNormalStock = remainingStock > 5;
+
+  if (isOutOfStock) {
+    return {
+      shouldShow: false,
+      isOutOfStock: true,
+      message: "",
+      textColor: "",
+    };
+  }
+
+  if (isLowStock) {
+    return {
+      shouldShow: true,
+      isOutOfStock: false,
+      message: `품절임박! ${remainingStock}개 남음`,
+      textColor: "text-red-600",
+    };
+  }
+
+  if (isNormalStock) {
+    return {
+      shouldShow: true,
+      isOutOfStock: false,
+      message: `재고 ${remainingStock}개`,
+      textColor: "text-gray-500",
+    };
+  }
+
+  return {
+    shouldShow: false,
+    isOutOfStock: false,
+    message: "",
+    textColor: "",
+  };
+}
+
+/**
+ * 할인 정보 표시 여부 확인
+ */
+export function shouldShowDiscountInfo(product: ProductWithUI): boolean {
+  return product.discounts.length > 0;
+}
+
+/**
+ * 할인 정보 텍스트 생성
+ */
+export function getDiscountDisplayText(discount: {
+  quantity: number;
+  rate: number;
+}): string {
+  return `${discount.quantity}개 이상 구매시 할인 ${discount.rate * 100}%`;
+}
+
+/**
+ * 가격 포맷팅 (기존 함수 활용)
+ */
+export function formatProductPrice(
+  price: number,
+  productId: string,
+  formatPriceFunction: (price: number, productId?: string) => string
+): string {
+  return formatPriceFunction(price, productId);
+}
