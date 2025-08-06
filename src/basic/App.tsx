@@ -121,15 +121,8 @@ const App = () => {
           <AdminPage
             activeTab={activeTab}
             productsHook={products}
-            coupons={coupons.coupons}
-            showCouponForm={coupons.showCouponForm}
-            couponForm={coupons.couponForm}
+            couponsHook={coupons}
             onTabChange={setActiveTab}
-            onShowCouponForm={coupons.toggleCouponForm}
-            onCouponSubmit={coupons.submitCouponForm}
-            onCouponFormChange={coupons.updateCouponForm}
-            onCancelCouponForm={coupons.cancelCouponForm}
-            onDeleteCoupon={coupons.deleteCoupon}
             formatPrice={formatPriceWithStock}
             addNotification={addNotification}
           />

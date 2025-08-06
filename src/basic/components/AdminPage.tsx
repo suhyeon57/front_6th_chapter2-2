@@ -22,6 +22,8 @@ import {
 interface AdminPageProps {
   // 데이터 props
   activeTab: "products" | "coupons";
+  onTabChange: (tab: "products" | "coupons") => void;
+
   productsHook: {
     products: ProductWithUI[];
     showProductForm: boolean;
@@ -43,24 +45,25 @@ interface AdminPageProps {
     onRemoveDiscount: (index: number) => void;
   };
 
-  coupons: Coupon[];
-  showCouponForm: boolean;
+  couponsHook: {
+    coupons: Coupon[];
+    showCouponForm: boolean;
 
-  couponForm: {
-    name: string;
-    code: string;
-    discountType: "amount" | "percentage";
-    discountValue: number;
+    couponForm: {
+      name: string;
+      code: string;
+      discountType: "amount" | "percentage";
+      discountValue: number;
+    };
+    onShowCouponForm: () => void;
+    onCouponSubmit: (e: React.FormEvent) => void;
+    onCouponFormChange: (field: string, value: any) => void;
+    onCancelCouponForm: () => void;
+    onDeleteCoupon: (code: string) => void;
   };
 
   // 이벤트 핸들러 props
-  onTabChange: (tab: "products" | "coupons") => void;
 
-  onShowCouponForm: () => void;
-  onCouponSubmit: (e: React.FormEvent) => void;
-  onCouponFormChange: (field: string, value: any) => void;
-  onCancelCouponForm: () => void;
-  onDeleteCoupon: (code: string) => void;
   formatPrice: (price: number, productId?: string) => string;
   addNotification: (
     message: string,
@@ -71,18 +74,8 @@ interface AdminPageProps {
 export function AdminPage({
   activeTab,
   productsHook,
-  coupons,
-
-  showCouponForm,
-
-  couponForm,
+  couponsHook,
   onTabChange,
-
-  onShowCouponForm,
-  onCouponSubmit,
-  onCouponFormChange,
-  onCancelCouponForm,
-  onDeleteCoupon,
   formatPrice,
   addNotification,
 }: AdminPageProps) {
@@ -100,6 +93,18 @@ export function AdminPage({
     onAddDiscount,
     onRemoveDiscount,
   } = productsHook;
+
+  const {
+    coupons,
+    showCouponForm,
+    couponForm,
+    onShowCouponForm,
+    onCouponSubmit,
+    onCouponFormChange,
+    onCancelCouponForm,
+    onDeleteCoupon,
+  } = couponsHook;
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8">

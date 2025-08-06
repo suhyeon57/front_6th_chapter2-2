@@ -141,14 +141,11 @@ export function useCoupons({
     showCouponForm,
     couponForm,
 
-    // 쿠폰 관리 함수
-    addCoupon,
-    deleteCoupon,
-
-    // 폼 관리 함수
-    toggleCouponForm,
-    updateCouponForm,
-    cancelCouponForm,
-    submitCouponForm,
+    // ✅ AdminPage에서 기대하는 함수명
+    onShowCouponForm: toggleCouponForm, // ✅ 매칭!
+    onCouponSubmit: submitCouponForm, // ✅ 매칭!
+    onCouponFormChange: updateCouponForm, // ✅ 매칭!
+    onCancelCouponForm: cancelCouponForm, // ✅ 매칭!
+    onDeleteCoupon: deleteCoupon, // ✅ 매칭!
   };
 }
