@@ -1,4 +1,4 @@
-import React from "react";
+//import React from "react";
 import { Toast } from "../../../types";
 import { CloseIcon } from "../icons";
 
@@ -7,7 +7,7 @@ interface ToastItemProps {
   onClose: (id: string) => void;
 }
 
-export const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose }) => {
+export const ToastItem = ({ toast, onClose }: ToastItemProps) => {
   const getBackgroundColor = () => {
     switch (toast.type) {
       case "error":

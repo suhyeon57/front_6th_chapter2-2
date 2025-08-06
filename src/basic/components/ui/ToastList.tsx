@@ -1,4 +1,4 @@
-import React from "react";
+//import React from "react";
 import { Toast } from "../../../types";
 import { ToastItem } from "./ToastItem";
 
@@ -7,7 +7,7 @@ interface ToastListProps {
   onClose: (id: string) => void;
 }
 
-export const ToastList: React.FC<ToastListProps> = ({ toasts, onClose }) => {
+export const ToastList = ({ toasts, onClose }: ToastListProps) => {
   if (toasts.length === 0) return null;
 
   return (

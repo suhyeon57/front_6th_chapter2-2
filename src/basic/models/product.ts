@@ -6,7 +6,16 @@ import {
   isValidStock,
   isValidProductName,
 } from "../utils/validators";
+import {
+  PRODUCT_CONSTRAINTS,
+  PRODUCT_DISPLAY,
+  STOCK_STATUS_STYLES,
+  PRODUCT_ERROR_MESSAGES,
+} from "../constants/product"; // ✅ 상수 import
 
+/**
+ * 가격 입력 처리 (AdminPage onChange에서 사용)
+ */
 export function handlePriceInput(value: string): {
   price: number;
   isValid: boolean;
@@ -20,7 +29,7 @@ export function handlePriceInput(value: string): {
     return {
       price: 0,
       isValid: false,
-      errorMessage: "숫자만 입력 가능합니다",
+      errorMessage: PRODUCT_ERROR_MESSAGES.ONLY_NUMBERS, // ✅ 상수 사용
     };
   }
 
@@ -30,7 +39,7 @@ export function handlePriceInput(value: string): {
     return {
       price: 0,
       isValid: false,
-      errorMessage: "가격은 0보다 커야 합니다",
+      errorMessage: PRODUCT_ERROR_MESSAGES.PRICE_REQUIRED, // ✅ 상수 사용
     };
   }
 
@@ -51,7 +60,11 @@ export function handleStockInput(value: string): {
 
   // 숫자만 허용
   if (!/^\d+$/.test(value)) {
-    return { stock: 0, isValid: false, errorMessage: "숫자만 입력 가능합니다" };
+    return {
+      stock: 0,
+      isValid: false,
+      errorMessage: PRODUCT_ERROR_MESSAGES.ONLY_NUMBERS, // ✅ 상수 사용
+    };
   }
 
   const stock = safeParseInt(value);
@@ -60,15 +73,16 @@ export function handleStockInput(value: string): {
     return {
       stock: 0,
       isValid: false,
-      errorMessage: "재고는 0보다 커야 합니다",
+      errorMessage: PRODUCT_ERROR_MESSAGES.STOCK_REQUIRED, // ✅ 상수 사용
     };
   }
 
-  if (stock > 9999) {
+  // ✅ 상수 사용
+  if (stock > PRODUCT_CONSTRAINTS.MAX_STOCK) {
     return {
-      stock: 9999,
+      stock: PRODUCT_CONSTRAINTS.MAX_STOCK,
       isValid: false,
-      errorMessage: "재고는 9999개를 초과할 수 없습니다",
+      errorMessage: PRODUCT_ERROR_MESSAGES.STOCK_OVER_MAX, // ✅ 상수 사용
     };
   }
 
@@ -89,7 +103,7 @@ export function validatePrice(value: string): {
     return {
       isValid: false,
       correctedPrice: 0,
-      errorMessage: "가격은 0보다 큰 숫자여야 합니다",
+      errorMessage: PRODUCT_ERROR_MESSAGES.PRICE_INVALID, // ✅ 상수 사용
     };
   }
   return { isValid: true, correctedPrice: price };
@@ -109,15 +123,16 @@ export function validateStock(value: string): {
     return {
       isValid: false,
       correctedStock: 0,
-      errorMessage: "재고는 0보다 커야 합니다",
+      errorMessage: PRODUCT_ERROR_MESSAGES.STOCK_REQUIRED, // ✅ 상수 사용
     };
   }
 
-  if (stock > 9999) {
+  // ✅ 상수 사용
+  if (stock > PRODUCT_CONSTRAINTS.MAX_STOCK) {
     return {
       isValid: false,
-      correctedStock: 9999,
-      errorMessage: "재고는 9999개를 초과할 수 없습니다",
+      correctedStock: PRODUCT_CONSTRAINTS.MAX_STOCK,
+      errorMessage: PRODUCT_ERROR_MESSAGES.STOCK_OVER_MAX, // ✅ 상수 사용
     };
   }
 
@@ -140,19 +155,21 @@ export function validateProductForm(formData: {
 
   if (!isValidProductName(formData.name)) {
     if (!formData.name.trim()) {
-      errors.push("상품명을 입력해주세요");
+      errors.push(PRODUCT_ERROR_MESSAGES.NAME_REQUIRED); // ✅ 상수 사용
     }
   }
 
   if (!isValidPrice(formData.price)) {
-    errors.push("가격은 0보다 커야 합니다");
-  }
-  if (!isValidStock(formData.stock)) {
-    errors.push("재고는 0보다 커야 합니다");
+    errors.push(PRODUCT_ERROR_MESSAGES.PRICE_REQUIRED); // ✅ 상수 사용
   }
 
-  if (formData.stock > 9999) {
-    errors.push("재고는 9999개를 초과할 수 없습니다");
+  if (!isValidStock(formData.stock)) {
+    errors.push(PRODUCT_ERROR_MESSAGES.STOCK_REQUIRED); // ✅ 상수 사용
+  }
+
+  // ✅ 상수 사용
+  if (formData.stock > PRODUCT_CONSTRAINTS.MAX_STOCK) {
+    errors.push(PRODUCT_ERROR_MESSAGES.STOCK_OVER_MAX); // ✅ 상수 사용
   }
 
   return {
@@ -165,22 +182,27 @@ export function validateProductForm(formData: {
  * 재고 상태 표시용 클래스 계산
  */
 export function getStockStatusClass(stock: number): string {
-  if (stock > 10) {
-    return "bg-green-100 text-green-800";
-  } else if (stock > 0) {
-    return "bg-yellow-100 text-yellow-800";
+  // ✅ 상수 사용
+  if (stock > PRODUCT_DISPLAY.NORMAL_STOCK_THRESHOLD) {
+    return STOCK_STATUS_STYLES.NORMAL;
+  } else if (stock > PRODUCT_DISPLAY.CRITICAL_STOCK_THRESHOLD) {
+    return STOCK_STATUS_STYLES.LOW;
   } else {
-    return "bg-red-100 text-red-800";
+    return STOCK_STATUS_STYLES.OUT_OF_STOCK;
   }
 }
+
+/**
+ * 상품 배지 정보
+ */
 export function getProductBadgeInfo(product: ProductWithUI) {
   return {
     showRecommended: product.isRecommended,
-    recommendedText: "BEST",
-    recommendedStyle: "bg-red-500 text-white text-xs px-2 py-1 rounded",
+    recommendedText: PRODUCT_DISPLAY.RECOMMENDED_BADGE_TEXT, // ✅ 상수 사용
+    recommendedStyle: PRODUCT_DISPLAY.RECOMMENDED_BADGE_STYLE, // ✅ 상수 사용
 
     showDiscount: product.discounts.length > 0,
-    discountStyle: "bg-orange-500 text-white text-xs px-2 py-1 rounded",
+    discountStyle: PRODUCT_DISPLAY.DISCOUNT_BADGE_STYLE, // ✅ 상수 사용
   };
 }
 
@@ -196,9 +218,11 @@ export function getMaxDiscountRate(product: ProductWithUI): number {
  * 재고 표시 정보 반환
  */
 export function getStockDisplayInfo(remainingStock: number) {
-  const isOutOfStock = remainingStock <= 0;
-  const isLowStock = remainingStock <= 5 && remainingStock > 0;
-  const isNormalStock = remainingStock > 5;
+  // ✅ 상수 사용
+  const isOutOfStock =
+    remainingStock <= PRODUCT_DISPLAY.CRITICAL_STOCK_THRESHOLD;
+  const isLowStock =
+    remainingStock <= PRODUCT_DISPLAY.LOW_STOCK_THRESHOLD && remainingStock > 0;
 
   if (isOutOfStock) {
     return {
@@ -218,20 +242,11 @@ export function getStockDisplayInfo(remainingStock: number) {
     };
   }
 
-  if (isNormalStock) {
-    return {
-      shouldShow: true,
-      isOutOfStock: false,
-      message: `재고 ${remainingStock}개`,
-      textColor: "text-gray-500",
-    };
-  }
-
   return {
-    shouldShow: false,
+    shouldShow: true,
     isOutOfStock: false,
-    message: "",
-    textColor: "",
+    message: `재고 ${remainingStock}개`,
+    textColor: "text-gray-500",
   };
 }
 

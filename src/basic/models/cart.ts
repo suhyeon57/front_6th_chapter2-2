@@ -1,4 +1,6 @@
 import { CartItem, ProductWithUI, Coupon } from "../../types";
+import { safeParseNumber } from "../utils/validators";
+import { CART_CONSTRAINTS, CART_ERROR_MESSAGES } from "../constants/cart";
 
 /**
  * 개별 아이템의 할인 적용 후 총액 계산
@@ -39,12 +41,17 @@ export function getMaxApplicableDiscount(
 
   // 2. 대량 구매 시 추가 5% 할인 (10개 이상일 때)
   const hasBulkPurchase = allCartItems.some(
-    (cartItem) => cartItem.quantity >= 10
+    (cartItem) => cartItem.quantity >= CART_CONSTRAINTS.BULK_PURCHASE_THRESHOLD
   );
-  const additionalDiscount = hasBulkPurchase ? 0.05 : 0;
+  const additionalDiscount = hasBulkPurchase
+    ? CART_CONSTRAINTS.BULK_PURCHASE_DISCOUNT
+    : 0;
 
   // 3. 최종 할인율 (최대 50% 제한)
-  const totalDiscount = Math.min(baseDiscount + additionalDiscount, 0.5);
+  const totalDiscount = Math.min(
+    baseDiscount + additionalDiscount,
+    CART_CONSTRAINTS.MAX_DISCOUNT_RATE
+  );
 
   return totalDiscount;
 }
@@ -110,7 +117,7 @@ export function updateCartItemQuantity(
   quantity: number
 ): CartItem[] {
   // 수량이 0 이하면 아이템 제거
-  if (quantity <= 0) {
+  if (quantity <= CART_CONSTRAINTS.CRITICAL_STOCK_THRESHOLD) {
     return removeItemFromCart(cart, productId);
   }
 
@@ -221,7 +228,7 @@ export function validateCart(cart: CartItem[]): {
   const errors: string[] = [];
 
   if (isCartEmpty(cart)) {
-    errors.push("장바구니가 비어있습니다.");
+    errors.push(CART_ERROR_MESSAGES.EMPTY_CART);
   }
 
   const outOfStockItems = getOutOfStockItems(cart);
@@ -244,8 +251,10 @@ export function validateCart(cart: CartItem[]): {
  * @returns 적용 가능하면 true
  */
 export function canApplyCoupon(cartTotal: number): boolean {
+  const validTotal = safeParseNumber(cartTotal.toString());
+
   // 기본 검증: 장바구니에 상품이 있어야 함
-  if (cartTotal <= 0) {
+  if (validTotal <= 0) {
     return false;
   }
   return true;
@@ -274,7 +283,7 @@ export function getCartItemDiscountInfo(item: CartItem, itemTotal: number) {
  */
 export function getEmptyCartInfo() {
   return {
-    message: "장바구니가 비어있습니다",
+    message: CART_ERROR_MESSAGES.EMPTY_CART,
     iconSize: "w-16 h-16",
     iconColor: "text-gray-300",
   };
@@ -334,11 +343,19 @@ export function getQuantityControlInfo(
   currentQuantity: number,
   maxStock?: number
 ) {
+  const maxAllowedQuantity = maxStock
+    ? Math.min(maxStock, CART_CONSTRAINTS.MAX_QUANTITY)
+    : CART_CONSTRAINTS.MAX_QUANTITY;
+
   return {
-    canDecrease: currentQuantity > 1,
-    canIncrease: maxStock ? currentQuantity < maxStock : true,
-    decreaseDisabled: currentQuantity <= 1,
-    increaseDisabled: maxStock ? currentQuantity >= maxStock : false,
+    canDecrease: currentQuantity > CART_CONSTRAINTS.MIN_QUANTITY,
+    canIncrease: currentQuantity < maxAllowedQuantity,
+    decreaseDisabled: currentQuantity <= CART_CONSTRAINTS.MIN_QUANTITY,
+    increaseDisabled: currentQuantity >= maxAllowedQuantity,
+    maxQuantityMessage:
+      currentQuantity >= CART_CONSTRAINTS.MAX_QUANTITY
+        ? CART_ERROR_MESSAGES.MAX_QUANTITY_EXCEEDED
+        : undefined,
   };
 }
 
