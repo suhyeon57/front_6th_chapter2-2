@@ -7,15 +7,12 @@ import {
   handleStockInput,
   validatePrice,
   validateStock,
-  validateProductForm,
-  getStockStatusClass,
 } from "../models/product";
 
 import {
   handleCouponCodeInput,
   handleDiscountValueInput,
   validateDiscountValue,
-  validateCouponForm,
   formatCouponDescription,
 } from "../models/coupon";
 

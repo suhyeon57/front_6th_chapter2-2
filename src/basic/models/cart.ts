@@ -243,16 +243,189 @@ export function validateCart(cart: CartItem[]): {
  * @param cartTotal - 장바구니 총액
  * @returns 적용 가능하면 true
  */
-export function canApplyCoupon(coupon: Coupon, cartTotal: number): boolean {
+export function canApplyCoupon(cartTotal: number): boolean {
   // 기본 검증: 장바구니에 상품이 있어야 함
   if (cartTotal <= 0) {
     return false;
   }
-
-  // 추후 최소 주문 금액 등의 조건 추가 가능
-  // if (coupon.minOrderAmount && cartTotal < coupon.minOrderAmount) {
-  //   return false;
-  // }
-
   return true;
+}
+
+/**
+ * 장바구니 아이템 할인 정보 계산
+ */
+export function getCartItemDiscountInfo(item: CartItem, itemTotal: number) {
+  const originalPrice = item.product.price * item.quantity;
+  const hasDiscount = itemTotal < originalPrice;
+  const discountRate = hasDiscount
+    ? Math.round((1 - itemTotal / originalPrice) * 100)
+    : 0;
+
+  return {
+    hasDiscount,
+    discountRate,
+    originalPrice,
+    discountAmount: originalPrice - itemTotal,
+  };
+}
+
+/**
+ * 장바구니 빈 상태 정보
+ */
+export function getEmptyCartInfo() {
+  return {
+    message: "장바구니가 비어있습니다",
+    iconSize: "w-16 h-16",
+    iconColor: "text-gray-300",
+  };
+}
+
+/**
+ * 쿠폰 표시 텍스트 생성
+ */
+export function formatCouponOptionText(coupon: Coupon): string {
+  const discountText =
+    coupon.discountType === "amount"
+      ? `${coupon.discountValue.toLocaleString()}원`
+      : `${coupon.discountValue}%`;
+
+  return `${coupon.name} (${discountText})`;
+}
+
+/**
+ * 결제 정보 계산
+ */
+export function getPaymentSummary(
+  totalBeforeDiscount: number,
+  totalAfterDiscount: number
+) {
+  const discountAmount = totalBeforeDiscount - totalAfterDiscount;
+  const hasDiscount = discountAmount > 0;
+
+  return {
+    totalBeforeDiscount,
+    totalAfterDiscount,
+    discountAmount,
+    hasDiscount,
+    formattedTotalBefore: totalBeforeDiscount.toLocaleString(),
+    formattedTotalAfter: totalAfterDiscount.toLocaleString(),
+    formattedDiscountAmount: discountAmount.toLocaleString(),
+  };
+}
+
+/**
+ * 결제 버튼 정보
+ */
+export function getPaymentButtonInfo(totalAfterDiscount: number) {
+  return {
+    text: `${totalAfterDiscount.toLocaleString()}원 결제하기`,
+    isDisabled: totalAfterDiscount <= 0,
+    className:
+      totalAfterDiscount <= 0
+        ? "w-full mt-4 py-3 bg-gray-300 text-gray-500 rounded-md font-medium cursor-not-allowed"
+        : "w-full mt-4 py-3 bg-yellow-400 text-gray-900 rounded-md font-medium hover:bg-yellow-500 transition-colors",
+  };
+}
+
+/**
+ * 수량 조절 버튼 정보
+ */
+export function getQuantityControlInfo(
+  currentQuantity: number,
+  maxStock?: number
+) {
+  return {
+    canDecrease: currentQuantity > 1,
+    canIncrease: maxStock ? currentQuantity < maxStock : true,
+    decreaseDisabled: currentQuantity <= 1,
+    increaseDisabled: maxStock ? currentQuantity >= maxStock : false,
+  };
+}
+
+/**
+ * 장바구니 헤더 정보
+ */
+export function getCartHeaderInfo(cartItemCount: number) {
+  return {
+    title: "장바구니",
+    showItemCount: cartItemCount > 0,
+    itemCountText: `(${cartItemCount})`,
+  };
+}
+
+/**
+ * 쿠폰 섹션 정보
+ */
+export function getCouponSectionInfo(coupons: Coupon[], hasItems: boolean) {
+  return {
+    shouldShow: hasItems,
+    title: "쿠폰 할인",
+    hasCoupons: coupons.length > 0,
+    noCouponsMessage: "사용 가능한 쿠폰이 없습니다",
+    selectPlaceholder: "쿠폰 선택",
+  };
+}
+
+/**
+ * 할인 표시 스타일 정보
+ */
+export function getDiscountDisplayStyle(discountRate: number) {
+  if (discountRate >= 30) {
+    return {
+      textColor: "text-red-600",
+      backgroundColor: "bg-red-50",
+      fontWeight: "font-bold",
+    };
+  }
+  if (discountRate >= 10) {
+    return {
+      textColor: "text-red-500",
+      backgroundColor: "bg-red-50",
+      fontWeight: "font-medium",
+    };
+  }
+  return {
+    textColor: "text-red-500",
+    backgroundColor: "",
+    fontWeight: "font-medium",
+  };
+}
+
+/**
+ * 장바구니 요약 정보 (대시보드용)
+ */
+export function getCartSummaryInfo(cart: CartItem[]) {
+  const totalItems = getTotalItemCount(cart);
+  const uniqueProducts = cart.length;
+
+  return {
+    totalItems,
+    uniqueProducts,
+    isEmpty: isCartEmpty(cart),
+    summaryText: `${uniqueProducts}종류 ${totalItems}개`,
+  };
+}
+
+/**
+ * 할인 혜택 요약 정보
+ */
+export function getDiscountBenefitInfo(
+  totalBeforeDiscount: number,
+  totalAfterDiscount: number,
+  couponDiscount: number
+) {
+  const productDiscount = totalBeforeDiscount - totalAfterDiscount;
+  const totalSavings =
+    totalBeforeDiscount - (totalAfterDiscount - couponDiscount);
+
+  return {
+    productDiscount,
+    couponDiscount,
+    totalSavings,
+    savingsRate:
+      totalBeforeDiscount > 0
+        ? Math.round((totalSavings / totalBeforeDiscount) * 100)
+        : 0,
+    hasSavings: totalSavings > 0,
+  };
 }
