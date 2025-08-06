@@ -1,5 +1,5 @@
 import React from "react";
-import { Toast } from "../../types/Toast";
+import { Toast } from "../../../types";
 import { CloseIcon } from "../icons";
 
 interface ToastItemProps {

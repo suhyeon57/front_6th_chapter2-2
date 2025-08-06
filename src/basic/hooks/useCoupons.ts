@@ -141,11 +141,10 @@ export function useCoupons({
     showCouponForm,
     couponForm,
 
-    // ✅ AdminPage에서 기대하는 함수명
-    onShowCouponForm: toggleCouponForm, // ✅ 매칭!
-    onCouponSubmit: submitCouponForm, // ✅ 매칭!
-    onCouponFormChange: updateCouponForm, // ✅ 매칭!
-    onCancelCouponForm: cancelCouponForm, // ✅ 매칭!
-    onDeleteCoupon: deleteCoupon, // ✅ 매칭!
+    onShowCouponForm: toggleCouponForm,
+    onCouponSubmit: submitCouponForm,
+    onCouponFormChange: updateCouponForm,
+    onCancelCouponForm: cancelCouponForm,
+    onDeleteCoupon: deleteCoupon,
   };
 }

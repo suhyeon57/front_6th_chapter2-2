@@ -1,4 +1,3 @@
-import React from "react";
 import { ShoppingCartIcon } from "./icons";
 import {
   getSearchDisplayInfo,
@@ -25,7 +24,6 @@ export function Header({
   onToggleAdmin,
   onSearchChange,
 }: HeaderProps) {
-  // ✅ 비즈니스 로직 함수로 상태 계산
   const searchInfo = getSearchDisplayInfo(isAdmin, searchTerm);
   const adminButtonInfo = getAdminButtonInfo(isAdmin);
   const cartIconInfo = getCartIconInfo(cartItemCount, isAdmin);
@@ -41,7 +39,6 @@ export function Header({
               {layoutInfo.logoText}
             </h1>
 
-            {/* ✅ 검색창 - 비즈니스 로직 분리 */}
             {searchInfo.shouldShow && (
               <div className={`ml-8 flex-1 ${searchInfo.maxWidth}`}>
                 <input

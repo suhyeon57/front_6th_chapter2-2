@@ -1,15 +1,12 @@
 import { ProductWithUI } from "../../types";
+import {
+  safeParseNumber,
+  safeParseInt,
+  isValidPrice,
+  isValidStock,
+  isValidProductName,
+} from "../utils/validators";
 
-// ===== 기존 함수들 (이미 있음) =====
-// export function createProduct(formData) { ... }
-// export function updateProduct(products, productId, formData) { ... }
-// export function deleteProduct(products, productId) { ... }
-
-// ===== AdminPage에서 분리할 새로운 함수들 =====
-
-/**
- * 가격 입력 처리 (AdminPage onChange에서 사용)
- */
 export function handlePriceInput(value: string): {
   price: number;
   isValid: boolean;
@@ -19,14 +16,17 @@ export function handlePriceInput(value: string): {
     return { price: 0, isValid: true };
   }
 
-  // 숫자만 허용
   if (!/^\d+$/.test(value)) {
-    return { price: 0, isValid: false, errorMessage: "숫자만 입력 가능합니다" };
+    return {
+      price: 0,
+      isValid: false,
+      errorMessage: "숫자만 입력 가능합니다",
+    };
   }
 
-  const price = parseInt(value);
+  const price = safeParseNumber(value);
 
-  if (price < 0) {
+  if (!isValidPrice(price)) {
     return {
       price: 0,
       isValid: false,
@@ -54,9 +54,9 @@ export function handleStockInput(value: string): {
     return { stock: 0, isValid: false, errorMessage: "숫자만 입력 가능합니다" };
   }
 
-  const stock = parseInt(value);
+  const stock = safeParseInt(value);
 
-  if (stock < 0) {
+  if (!isValidStock(stock)) {
     return {
       stock: 0,
       isValid: false,
@@ -83,16 +83,15 @@ export function validatePrice(value: string): {
   correctedPrice: number;
   errorMessage?: string;
 } {
-  const price = parseInt(value) || 0;
+  const price = safeParseNumber(value);
 
-  if (price < 0) {
+  if (!isValidPrice(price)) {
     return {
       isValid: false,
       correctedPrice: 0,
-      errorMessage: "가격은 0보다 커야 합니다",
+      errorMessage: "가격은 0보다 큰 숫자여야 합니다",
     };
   }
-
   return { isValid: true, correctedPrice: price };
 }
 
@@ -104,9 +103,9 @@ export function validateStock(value: string): {
   correctedStock: number;
   errorMessage?: string;
 } {
-  const stock = parseInt(value) || 0;
+  const stock = safeParseInt(value);
 
-  if (stock < 0) {
+  if (!isValidStock(stock)) {
     return {
       isValid: false,
       correctedStock: 0,
@@ -139,16 +138,17 @@ export function validateProductForm(formData: {
 } {
   const errors: string[] = [];
 
-  if (!formData.name.trim()) {
-    errors.push("상품명을 입력해주세요");
+  if (!isValidProductName(formData.name)) {
+    if (!formData.name.trim()) {
+      errors.push("상품명을 입력해주세요");
+    }
   }
 
-  if (formData.price <= 0) {
+  if (!isValidPrice(formData.price)) {
     errors.push("가격은 0보다 커야 합니다");
   }
-
-  if (formData.stock < 0) {
-    errors.push("재고는 0보다 크거나 같아야 합니다");
+  if (!isValidStock(formData.stock)) {
+    errors.push("재고는 0보다 커야 합니다");
   }
 
   if (formData.stock > 9999) {

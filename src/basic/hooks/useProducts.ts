@@ -222,7 +222,6 @@ export function useProducts({ addNotification }: UseProductsProps) {
     editingProduct,
     productForm,
 
-    // ✅ AdminPage에서 기대하는 함수명으로 변경
     onShowProductForm: showProductFormHandler,
     onProductSubmit: submitProductForm,
     onProductFormChange: updateProductForm,

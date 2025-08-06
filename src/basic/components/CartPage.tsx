@@ -1,8 +1,6 @@
-//import React from "react";
 import { CartItem, Coupon } from "../../types";
 import { CartIcon, CloseIcon } from "./icons";
 
-// ✅ 비즈니스 로직 import
 import {
   getCartItemDiscountInfo,
   getEmptyCartInfo,
@@ -46,7 +44,6 @@ export function CartPage({
   onCompleteOrder,
   calculateItemTotal,
 }: CartPageProps) {
-  // ✅ 비즈니스 로직 함수들로 상태 계산
   const headerInfo = getCartHeaderInfo(cart.length);
   const emptyCartInfo = getEmptyCartInfo();
   const couponSectionInfo = getCouponSectionInfo(coupons, cart.length > 0);
@@ -59,7 +56,6 @@ export function CartPage({
   return (
     <div className="lg:col-span-1">
       <div className="sticky top-24 space-y-4">
-        {/* ✅ 장바구니 섹션 - 헤더 정보 분리 */}
         <section className="bg-white rounded-lg border border-gray-200 p-4">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <CartIcon className="w-5 h-5 mr-2" strokeWidth={2} />
@@ -71,7 +67,6 @@ export function CartPage({
             )}
           </h2>
 
-          {/* ✅ 빈 장바구니 - 비즈니스 로직 분리 */}
           {cart.length === 0 ? (
             <div className="text-center py-8">
               <CartIcon
@@ -81,12 +76,10 @@ export function CartPage({
               <p className="text-gray-500 text-sm">{emptyCartInfo.message}</p>
             </div>
           ) : (
-            /* ✅ 장바구니 아이템들 - 비즈니스 로직 분리 */
             <div className="space-y-3">
               {cart.map((item) => {
                 const itemTotal = calculateItemTotal(item);
 
-                // ✅ 아이템별 비즈니스 로직
                 const discountInfo = getCartItemDiscountInfo(item, itemTotal);
                 const quantityControlInfo = getQuantityControlInfo(
                   item.quantity
@@ -113,7 +106,6 @@ export function CartPage({
                     </div>
 
                     <div className="flex items-center justify-between">
-                      {/* ✅ 수량 조절 - 비즈니스 로직 분리 */}
                       <div className="flex items-center">
                         <button
                           onClick={() =>
@@ -146,7 +138,6 @@ export function CartPage({
                         </button>
                       </div>
 
-                      {/* ✅ 가격 표시 - 할인 스타일 분리 */}
                       <div className="text-right">
                         {discountInfo.hasDiscount && (
                           <span
@@ -167,7 +158,6 @@ export function CartPage({
           )}
         </section>
 
-        {/* ✅ 쿠폰 섹션 - 비즈니스 로직 분리 */}
         {couponSectionInfo.shouldShow && (
           <section className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center justify-between mb-3">
@@ -192,7 +182,6 @@ export function CartPage({
                 <option value="">{couponSectionInfo.selectPlaceholder}</option>
                 {coupons.map((coupon) => (
                   <option key={coupon.code} value={coupon.code}>
-                    {/* ✅ 쿠폰 텍스트 포맷팅 분리 */}
                     {formatCouponOptionText(coupon)}
                   </option>
                 ))}
@@ -205,7 +194,6 @@ export function CartPage({
           </section>
         )}
 
-        {/* ✅ 결제 정보 섹션 - 비즈니스 로직 분리 */}
         {cart.length > 0 && (
           <section className="bg-white rounded-lg border border-gray-200 p-4">
             <h3 className="text-lg font-semibold mb-4">결제 정보</h3>
@@ -217,7 +205,6 @@ export function CartPage({
                 </span>
               </div>
 
-              {/* ✅ 할인 금액 표시 조건 분리 */}
               {paymentSummary.hasDiscount && (
                 <div className="flex justify-between text-red-500">
                   <span>할인 금액</span>
@@ -233,7 +220,6 @@ export function CartPage({
               </div>
             </div>
 
-            {/* ✅ 결제 버튼 - 비즈니스 로직 분리 */}
             <button
               onClick={onCompleteOrder}
               disabled={paymentButtonInfo.isDisabled}
