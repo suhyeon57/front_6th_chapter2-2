@@ -1,11 +1,6 @@
 import { Coupon } from "../../types";
-
-// ===== 기존 함수들 (이미 있음) =====
-// export function createCoupon(formData) { ... }
-// export function deleteCoupon(coupons, couponCode) { ... }
-// export function findCouponByCode(coupons, code) { ... }
-
-// ===== AdminPage에서 분리할 새로운 함수들 =====
+import { safeParseNumber } from "../utils/validators";
+import { COUPON_CONSTRAINTS, COUPON_ERROR_MESSAGES } from "../constants/coupon";
 
 /**
  * 쿠폰 코드 입력 처리 (AdminPage onChange에서 사용)
@@ -35,26 +30,32 @@ export function handleDiscountValueInput(
     return {
       discountValue: 0,
       isValid: false,
-      errorMessage: "숫자만 입력 가능합니다",
+      errorMessage: COUPON_ERROR_MESSAGES.ONLY_NUMBERS,
     };
   }
 
-  const discountValue = parseInt(value);
+  const discountValue = safeParseNumber(value);
 
   // 타입별 상한선 체크
-  if (discountType === "percentage" && discountValue > 100) {
+  if (
+    discountType === "percentage" &&
+    discountValue > COUPON_CONSTRAINTS.MAX_PERCENTAGE
+  ) {
     return {
-      discountValue: 100,
+      discountValue: COUPON_CONSTRAINTS.MAX_PERCENTAGE,
       isValid: false,
-      errorMessage: "할인율은 100%를 초과할 수 없습니다",
+      errorMessage: COUPON_ERROR_MESSAGES.PERCENTAGE_OVER_MAX,
     };
   }
 
-  if (discountType === "amount" && discountValue > 100000) {
+  if (
+    discountType === "amount" &&
+    discountValue > COUPON_CONSTRAINTS.MAX_AMOUNT
+  ) {
     return {
-      discountValue: 100000,
+      discountValue: COUPON_CONSTRAINTS.MAX_AMOUNT,
       isValid: false,
-      errorMessage: "할인 금액은 100,000원을 초과할 수 없습니다",
+      errorMessage: COUPON_ERROR_MESSAGES.AMOUNT_OVER_MAX,
     };
   }
 
@@ -72,40 +73,39 @@ export function validateDiscountValue(
   correctedValue: number;
   errorMessage?: string;
 } {
-  const discountValue = parseInt(value) || 0;
+  const discountValue = safeParseNumber(value);
 
   if (discountType === "percentage") {
-    if (discountValue > 100) {
+    if (discountValue > COUPON_CONSTRAINTS.MAX_PERCENTAGE) {
       return {
         isValid: false,
-        correctedValue: 100,
-        errorMessage: "할인율은 100%를 초과할 수 없습니다",
+        correctedValue: COUPON_CONSTRAINTS.MAX_PERCENTAGE,
+        errorMessage: COUPON_ERROR_MESSAGES.PERCENTAGE_OVER_MAX,
       };
     }
-    if (discountValue < 0) {
+    if (discountValue < COUPON_CONSTRAINTS.MIN_PERCENTAGE) {
       return {
         isValid: false,
-        correctedValue: 0,
-        errorMessage: "할인율은 0% 이상이어야 합니다",
+        correctedValue: COUPON_CONSTRAINTS.MIN_PERCENTAGE,
+        errorMessage: COUPON_ERROR_MESSAGES.PERCENTAGE_UNDER_MIN,
       };
     }
   } else {
-    if (discountValue > 100000) {
+    if (discountValue > COUPON_CONSTRAINTS.MAX_AMOUNT) {
       return {
         isValid: false,
-        correctedValue: 100000,
-        errorMessage: "할인 금액은 100,000원을 초과할 수 없습니다",
+        correctedValue: COUPON_CONSTRAINTS.MAX_AMOUNT,
+        errorMessage: COUPON_ERROR_MESSAGES.AMOUNT_OVER_MAX,
       };
     }
-    if (discountValue < 0) {
+    if (discountValue < COUPON_CONSTRAINTS.MIN_AMOUNT) {
       return {
         isValid: false,
-        correctedValue: 0,
-        errorMessage: "할인 금액은 0원 이상이어야 합니다",
+        correctedValue: COUPON_CONSTRAINTS.MIN_AMOUNT,
+        errorMessage: COUPON_ERROR_MESSAGES.AMOUNT_UNDER_MIN,
       };
     }
   }
-
   return { isValid: true, correctedValue: discountValue };
 }
 
@@ -124,15 +124,15 @@ export function validateCouponForm(formData: {
   const errors: string[] = [];
 
   if (!formData.name.trim()) {
-    errors.push("쿠폰명을 입력해주세요");
+    errors.push(COUPON_ERROR_MESSAGES.NAME_REQUIRED);
   }
 
   if (!formData.code.trim()) {
-    errors.push("쿠폰 코드를 입력해주세요");
+    errors.push(COUPON_ERROR_MESSAGES.CODE_REQUIRED);
   }
 
   if (formData.discountValue <= 0) {
-    errors.push("할인값은 0보다 커야 합니다");
+    errors.push(COUPON_ERROR_MESSAGES.DISCOUNT_VALUE_REQUIRED);
   }
 
   return {
