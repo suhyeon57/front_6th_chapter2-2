@@ -1,5 +1,4 @@
 import { useAtomValue } from "jotai";
-import { ProductWithUI } from "../../types";
 import { ImageIcon } from "./icons";
 
 // ✅ Jotai atoms import
