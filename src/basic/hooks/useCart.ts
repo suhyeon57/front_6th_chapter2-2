@@ -10,11 +10,11 @@ import {
   updateCartItemQuantity,
   removeItemFromCart,
   validateCart,
-  canApplyCoupon,
   getOutOfStockItems,
 } from "../models/cart";
 
 import { CART_CONSTRAINTS } from "../constants/cart";
+import { COUPON_CONSTRAINTS } from "../constants/coupon";
 
 interface UseCartProps {
   products: ProductWithUI[];
@@ -101,14 +101,12 @@ export function useCart({ products, addNotification }: UseCartProps) {
   const applyCoupon = useCallback(
     (coupon: Coupon) => {
       const currentTotal = calculateCartTotal(cart, null);
-
-      const MIN_PURCHASE_FOR_PERCENTAGE_COUPON = 10000;
       if (
-        currentTotal.totalAfterDiscount < MIN_PURCHASE_FOR_PERCENTAGE_COUPON &&
+        currentTotal.totalAfterDiscount < COUPON_CONSTRAINTS.MAX_AMOUNT &&
         coupon.discountType === "percentage"
       ) {
         addNotification(
-          `percentage 쿠폰은 ${MIN_PURCHASE_FOR_PERCENTAGE_COUPON.toLocaleString()}원 이상 구매 시 사용 가능합니다.`,
+          `percentage 쿠폰은 ${COUPON_CONSTRAINTS.MAX_AMOUNT.toLocaleString()}원 이상 구매 시 사용 가능합니다.`,
           "error"
         );
         return;
