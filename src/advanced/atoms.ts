@@ -117,7 +117,6 @@ export const filteredProductsAtom = atom((get) => {
 // 장바구니 관련 atoms
 // ================================
 export const cartItemsAtom = atomWithStorage<CartItem[]>("cart", []);
-export const selectedCouponAtom = atom<Coupon | null>(null);
 
 // 총 아이템 개수 (derived atom)
 export const totalItemCountAtom = atom((get) => {
@@ -129,7 +128,7 @@ export const totalItemCountAtom = atom((get) => {
 // 쿠폰 관련 atoms
 // ================================
 export const couponsAtom = atomWithStorage<Coupon[]>("coupons", initialCoupons);
-
+export const selectedCouponAtom = atom<Coupon | null>(null);
 // ================================
 // 알림 관련 atoms
 // ================================

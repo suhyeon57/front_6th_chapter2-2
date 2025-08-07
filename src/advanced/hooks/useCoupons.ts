@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useAtom } from "jotai"; // ✅ Jotai 추가
-import { couponsAtom } from "../atoms"; // ✅ Jotai atom 사용
+import { couponsAtom, selectedCouponAtom } from "../atoms"; // ✅ Jotai atom 사용
 import { Coupon } from "../../types";
 
 interface UseCouponsProps {
@@ -8,20 +8,15 @@ interface UseCouponsProps {
     message: string,
     type?: "error" | "success" | "warning"
   ) => void;
-  selectedCoupon: Coupon | null;
-  setSelectedCoupon: (coupon: Coupon | null) => void;
 }
-export function useCoupons({
-  addNotification,
-  selectedCoupon,
-  setSelectedCoupon,
-}: UseCouponsProps) {
+export function useCoupons({ addNotification }: UseCouponsProps) {
   // =====================================
   // 상태 관리
   // =====================================
 
   // 로컬스토리지에서 쿠폰 목록을 불러와 초기화
   const [coupons, setCoupons] = useAtom(couponsAtom);
+  const [selectedCoupon, setSelectedCoupon] = useAtom(selectedCouponAtom);
 
   // 쿠폰 폼 관련 상태들
   const [showCouponForm, setShowCouponForm] = useState(false);
@@ -122,9 +117,11 @@ export function useCoupons({
   return {
     // 상태
     coupons,
+    selectedCoupon,
     showCouponForm,
     couponForm,
 
+    setSelectedCoupon,
     onShowCouponForm: toggleCouponForm,
     onCouponSubmit: submitCouponForm,
     onCouponFormChange: updateCouponForm,

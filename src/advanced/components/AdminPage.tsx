@@ -1,7 +1,15 @@
-import React from "react";
-import { ProductWithUI, Coupon } from "../../types";
+import { useAtom, useAtomValue } from "jotai";
 import { TrashIcon, PlusIcon, CloseIcon } from "./icons";
 
+// ✅ Jotai atoms import
+import { activeTabAtom, formatPriceAtom } from "../atoms";
+
+// ✅ Jotai hooks import
+import { useProducts } from "../hooks/useProducts";
+import { useCoupons } from "../hooks/useCoupons";
+import { useNotificationJotai } from "../utils/hooks/useNotification";
+
+// ✅ 비즈니스 로직 import
 import {
   handlePriceInput,
   handleStockInput,
@@ -16,66 +24,20 @@ import {
   formatCouponDescription,
 } from "../models/coupon";
 
-interface AdminPageProps {
-  // 데이터 props
-  activeTab: "products" | "coupons";
-  onTabChange: (tab: "products" | "coupons") => void;
+export function AdminPage() {
+  const [activeTab, setActiveTab] = useAtom(activeTabAtom);
+  const formatPrice = useAtomValue(formatPriceAtom);
 
-  productsHook: {
-    products: ProductWithUI[];
-    showProductForm: boolean;
-    editingProduct: string | null;
-    productForm: {
-      name: string;
-      price: number;
-      stock: number;
-      description: string;
-      discounts: Array<{ quantity: number; rate: number }>;
-    };
-    onShowProductForm: () => void;
-    onProductSubmit: (e: React.FormEvent) => void;
-    onProductFormChange: (field: string, value: any) => void;
-    onCancelProductForm: () => void;
-    onStartEditProduct: (product: ProductWithUI) => void;
-    onDeleteProduct: (id: string) => void;
-    onAddDiscount: () => void;
-    onRemoveDiscount: (index: number) => void;
-  };
+  const notifications = useNotificationJotai();
 
-  couponsHook: {
-    coupons: Coupon[];
-    showCouponForm: boolean;
+  const productsHook = useProducts({
+    addNotification: notifications.addNotification,
+  });
 
-    couponForm: {
-      name: string;
-      code: string;
-      discountType: "amount" | "percentage";
-      discountValue: number;
-    };
-    onShowCouponForm: () => void;
-    onCouponSubmit: (e: React.FormEvent) => void;
-    onCouponFormChange: (field: string, value: any) => void;
-    onCancelCouponForm: () => void;
-    onDeleteCoupon: (code: string) => void;
-  };
+  const couponsHook = useCoupons({
+    addNotification: notifications.addNotification,
+  });
 
-  // 이벤트 핸들러 props
-
-  formatPrice: (price: number, productId?: string) => string;
-  addNotification: (
-    message: string,
-    type?: "error" | "success" | "warning"
-  ) => void;
-}
-
-export function AdminPage({
-  activeTab,
-  productsHook,
-  couponsHook,
-  onTabChange,
-  formatPrice,
-  addNotification,
-}: AdminPageProps) {
   const {
     products,
     showProductForm,
@@ -112,7 +74,7 @@ export function AdminPage({
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
           <button
-            onClick={() => onTabChange("products")}
+            onClick={() => setActiveTab("products")}
             className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === "products"
                 ? "border-gray-900 text-gray-900"
@@ -122,7 +84,7 @@ export function AdminPage({
             상품 관리
           </button>
           <button
-            onClick={() => onTabChange("coupons")}
+            onClick={() => setActiveTab("coupons")}
             className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === "coupons"
                 ? "border-gray-900 text-gray-900"
@@ -264,7 +226,10 @@ export function AdminPage({
                       onBlur={(e) => {
                         const validation = validatePrice(e.target.value);
                         if (!validation.isValid) {
-                          addNotification(validation.errorMessage!, "error");
+                          notifications.addNotification(
+                            validation.errorMessage!,
+                            "error"
+                          );
                           onProductFormChange(
                             "price",
                             validation.correctedPrice
@@ -288,13 +253,19 @@ export function AdminPage({
                         if (result.isValid) {
                           onProductFormChange("stock", result.stock);
                         } else {
-                          addNotification(result.errorMessage!, "error");
+                          notifications.addNotification(
+                            result.errorMessage!,
+                            "error"
+                          );
                         }
                       }}
                       onBlur={(e) => {
                         const validation = validateStock(e.target.value);
                         if (!validation.isValid) {
-                          addNotification(validation.errorMessage!, "error");
+                          notifications.addNotification(
+                            validation.errorMessage!,
+                            "error"
+                          );
                           onProductFormChange(
                             "stock",
                             validation.correctedStock
@@ -512,7 +483,10 @@ export function AdminPage({
                               result.discountValue
                             );
                           } else {
-                            addNotification(result.errorMessage!, "error");
+                            notifications.addNotification(
+                              result.errorMessage!,
+                              "error"
+                            );
                           }
                         }}
                         onBlur={(e) => {
@@ -521,7 +495,10 @@ export function AdminPage({
                             couponForm.discountType
                           );
                           if (!validation.isValid) {
-                            addNotification(validation.errorMessage!, "error");
+                            notifications.addNotification(
+                              validation.errorMessage!,
+                              "error"
+                            );
                             onCouponFormChange(
                               "discountValue",
                               validation.correctedValue

@@ -1,5 +1,4 @@
 import { useAtomValue } from "jotai";
-import { CartItem, Coupon } from "../../types";
 import { CartIcon, CloseIcon } from "./icons";
 
 // ✅ Jotai atoms import
@@ -47,7 +46,7 @@ export function CartPage() {
   } = cart;
 
   // ✅ 비즈니스 로직 계산
-  const headerInfo = getCartHeaderInfo(cartItems.length); // ✅ 수정: c → cartItems.length
+  const headerInfo = getCartHeaderInfo(cartItems.length);
   const emptyCartInfo = getEmptyCartInfo();
   const couponSectionInfo = getCouponSectionInfo(coupons, cartItems.length > 0);
   const paymentSummary = getPaymentSummary(
