@@ -11,7 +11,7 @@ import {
   PRODUCT_DISPLAY,
   STOCK_STATUS_STYLES,
   PRODUCT_ERROR_MESSAGES,
-} from "../constants/product"; // ✅ 상수 import
+} from "../constants/product";
 
 /**
  * 가격 입력 처리 (AdminPage onChange에서 사용)
@@ -29,7 +29,7 @@ export function handlePriceInput(value: string): {
     return {
       price: 0,
       isValid: false,
-      errorMessage: PRODUCT_ERROR_MESSAGES.ONLY_NUMBERS, // ✅ 상수 사용
+      errorMessage: PRODUCT_ERROR_MESSAGES.ONLY_NUMBERS,
     };
   }
 
@@ -39,7 +39,7 @@ export function handlePriceInput(value: string): {
     return {
       price: 0,
       isValid: false,
-      errorMessage: PRODUCT_ERROR_MESSAGES.PRICE_REQUIRED, // ✅ 상수 사용
+      errorMessage: PRODUCT_ERROR_MESSAGES.PRICE_REQUIRED,
     };
   }
 
@@ -63,7 +63,7 @@ export function handleStockInput(value: string): {
     return {
       stock: 0,
       isValid: false,
-      errorMessage: PRODUCT_ERROR_MESSAGES.ONLY_NUMBERS, // ✅ 상수 사용
+      errorMessage: PRODUCT_ERROR_MESSAGES.ONLY_NUMBERS,
     };
   }
 
@@ -73,16 +73,15 @@ export function handleStockInput(value: string): {
     return {
       stock: 0,
       isValid: false,
-      errorMessage: PRODUCT_ERROR_MESSAGES.STOCK_REQUIRED, // ✅ 상수 사용
+      errorMessage: PRODUCT_ERROR_MESSAGES.STOCK_REQUIRED,
     };
   }
 
-  // ✅ 상수 사용
   if (stock > PRODUCT_CONSTRAINTS.MAX_STOCK) {
     return {
       stock: PRODUCT_CONSTRAINTS.MAX_STOCK,
       isValid: false,
-      errorMessage: PRODUCT_ERROR_MESSAGES.STOCK_OVER_MAX, // ✅ 상수 사용
+      errorMessage: PRODUCT_ERROR_MESSAGES.STOCK_OVER_MAX,
     };
   }
 
@@ -103,7 +102,7 @@ export function validatePrice(value: string): {
     return {
       isValid: false,
       correctedPrice: 0,
-      errorMessage: PRODUCT_ERROR_MESSAGES.PRICE_INVALID, // ✅ 상수 사용
+      errorMessage: PRODUCT_ERROR_MESSAGES.PRICE_INVALID,
     };
   }
   return { isValid: true, correctedPrice: price };
@@ -123,16 +122,15 @@ export function validateStock(value: string): {
     return {
       isValid: false,
       correctedStock: 0,
-      errorMessage: PRODUCT_ERROR_MESSAGES.STOCK_REQUIRED, // ✅ 상수 사용
+      errorMessage: PRODUCT_ERROR_MESSAGES.STOCK_REQUIRED,
     };
   }
 
-  // ✅ 상수 사용
   if (stock > PRODUCT_CONSTRAINTS.MAX_STOCK) {
     return {
       isValid: false,
       correctedStock: PRODUCT_CONSTRAINTS.MAX_STOCK,
-      errorMessage: PRODUCT_ERROR_MESSAGES.STOCK_OVER_MAX, // ✅ 상수 사용
+      errorMessage: PRODUCT_ERROR_MESSAGES.STOCK_OVER_MAX,
     };
   }
 
@@ -155,21 +153,20 @@ export function validateProductForm(formData: {
 
   if (!isValidProductName(formData.name)) {
     if (!formData.name.trim()) {
-      errors.push(PRODUCT_ERROR_MESSAGES.NAME_REQUIRED); // ✅ 상수 사용
+      errors.push(PRODUCT_ERROR_MESSAGES.NAME_REQUIRED);
     }
   }
 
   if (!isValidPrice(formData.price)) {
-    errors.push(PRODUCT_ERROR_MESSAGES.PRICE_REQUIRED); // ✅ 상수 사용
+    errors.push(PRODUCT_ERROR_MESSAGES.PRICE_REQUIRED);
   }
 
   if (!isValidStock(formData.stock)) {
-    errors.push(PRODUCT_ERROR_MESSAGES.STOCK_REQUIRED); // ✅ 상수 사용
+    errors.push(PRODUCT_ERROR_MESSAGES.STOCK_REQUIRED);
   }
 
-  // ✅ 상수 사용
   if (formData.stock > PRODUCT_CONSTRAINTS.MAX_STOCK) {
-    errors.push(PRODUCT_ERROR_MESSAGES.STOCK_OVER_MAX); // ✅ 상수 사용
+    errors.push(PRODUCT_ERROR_MESSAGES.STOCK_OVER_MAX);
   }
 
   return {
@@ -182,7 +179,6 @@ export function validateProductForm(formData: {
  * 재고 상태 표시용 클래스 계산
  */
 export function getStockStatusClass(stock: number): string {
-  // ✅ 상수 사용
   if (stock > PRODUCT_DISPLAY.NORMAL_STOCK_THRESHOLD) {
     return STOCK_STATUS_STYLES.NORMAL;
   } else if (stock > PRODUCT_DISPLAY.CRITICAL_STOCK_THRESHOLD) {
@@ -198,11 +194,11 @@ export function getStockStatusClass(stock: number): string {
 export function getProductBadgeInfo(product: ProductWithUI) {
   return {
     showRecommended: product.isRecommended,
-    recommendedText: PRODUCT_DISPLAY.RECOMMENDED_BADGE_TEXT, // ✅ 상수 사용
-    recommendedStyle: PRODUCT_DISPLAY.RECOMMENDED_BADGE_STYLE, // ✅ 상수 사용
+    recommendedText: PRODUCT_DISPLAY.RECOMMENDED_BADGE_TEXT,
+    recommendedStyle: PRODUCT_DISPLAY.RECOMMENDED_BADGE_STYLE,
 
     showDiscount: product.discounts.length > 0,
-    discountStyle: PRODUCT_DISPLAY.DISCOUNT_BADGE_STYLE, // ✅ 상수 사용
+    discountStyle: PRODUCT_DISPLAY.DISCOUNT_BADGE_STYLE,
   };
 }
 
@@ -218,7 +214,6 @@ export function getMaxDiscountRate(product: ProductWithUI): number {
  * 재고 표시 정보 반환
  */
 export function getStockDisplayInfo(remainingStock: number) {
-  // ✅ 상수 사용
   const isOutOfStock =
     remainingStock <= PRODUCT_DISPLAY.CRITICAL_STOCK_THRESHOLD;
   const isLowStock =

@@ -21,6 +21,8 @@ interface CartPageProps {
   totals: {
     totalBeforeDiscount: number;
     totalAfterDiscount: number;
+    couponDiscount: number; // ✅ 이걸 추가해야 함
+    finalTotal: number;
   };
 
   // 이벤트 핸들러 props
@@ -49,9 +51,10 @@ export function CartPage({
   const couponSectionInfo = getCouponSectionInfo(coupons, cart.length > 0);
   const paymentSummary = getPaymentSummary(
     totals.totalBeforeDiscount,
-    totals.totalAfterDiscount
+    totals.finalTotal, // ✅ totalAfterDiscount 대신 finalTotal 사용
+    totals.couponDiscount // ✅ couponDiscount 추가
   );
-  const paymentButtonInfo = getPaymentButtonInfo(totals.totalAfterDiscount);
+  const paymentButtonInfo = getPaymentButtonInfo(totals.finalTotal);
 
   return (
     <div className="lg:col-span-1">
@@ -205,10 +208,18 @@ export function CartPage({
                 </span>
               </div>
 
-              {paymentSummary.hasDiscount && (
+              {/* ✅ 상품 할인 + 쿠폰 할인 모두 포함 */}
+              {(totals.couponDiscount > 0 || paymentSummary.hasDiscount) && (
                 <div className="flex justify-between text-red-500">
                   <span>할인 금액</span>
-                  <span>-{paymentSummary.formattedDiscountAmount}원</span>
+                  <span>
+                    -
+                    {(
+                      totals.couponDiscount +
+                      (totals.totalBeforeDiscount - totals.totalAfterDiscount)
+                    ).toLocaleString()}
+                    원
+                  </span>
                 </div>
               )}
 
