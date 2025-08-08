@@ -7,7 +7,7 @@ import { activeTabAtom, formatPriceAtom } from "../atoms";
 // ✅ Jotai hooks import
 import { useProducts } from "../hooks/useProducts";
 import { useCoupons } from "../hooks/useCoupons";
-import { useNotificationJotai } from "../utils/hooks/useNotification";
+import { useNotificationJotai } from "../hooks/useNotification";
 
 // ✅ 비즈니스 로직 import
 import {

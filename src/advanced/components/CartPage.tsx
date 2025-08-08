@@ -6,7 +6,7 @@ import { couponsAtom } from "../atoms";
 
 // ✅ Jotai hooks import
 import { useCartJotai } from "../hooks/useCart";
-import { useNotificationJotai } from "../utils/hooks/useNotification";
+import { useNotificationJotai } from "../hooks/useNotification";
 
 // ✅ 비즈니스 로직 import
 import {

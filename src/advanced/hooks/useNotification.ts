@@ -4,7 +4,7 @@ import {
   notificationsAtom,
   addNotificationAtom,
   removeNotificationAtom,
-} from "../../atoms";
+} from "../atoms";
 
 export function useNotificationJotai() {
   const notifications = useAtomValue(notificationsAtom);

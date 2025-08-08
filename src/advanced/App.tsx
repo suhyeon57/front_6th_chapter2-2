@@ -6,7 +6,7 @@ import { CartPage } from "./components/CartPage";
 import { Header } from "./components/Header";
 
 import { isAdminAtom } from "./atoms";
-import { useNotificationJotai } from "./utils/hooks/useNotification";
+import { useNotificationJotai } from "./hooks/useNotification";
 
 const AppContent = () => {
   const [isAdmin, setIsAdmin] = useAtom(isAdminAtom);

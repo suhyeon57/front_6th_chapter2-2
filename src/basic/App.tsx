@@ -8,7 +8,7 @@ import { useProducts } from "./hooks/useProducts";
 import { useCoupons } from "./hooks/useCoupons";
 import { useDebounce } from "./utils/hooks/useDebounce"; // useDebounce import 추가
 import { formatPrice } from "./utils/formatters"; // formatPrice import 추가
-import { useNotification } from "./utils/hooks/useNotifications"; // useNotification import 추가
+import { useNotification } from "./hooks/useNotifications"; // useNotification import 추가
 import { Header } from "./components/Header"; // Header 컴포넌트 import
 
 const App = () => {
